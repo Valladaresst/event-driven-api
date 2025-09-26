@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eda-config
+data:
+  SERVER_PORT: "8080"
+  SPRING_PROFILES_ACTIVE: "default"

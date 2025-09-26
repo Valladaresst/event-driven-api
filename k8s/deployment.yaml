@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eda-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: eda-api
+  template:
+    metadata:
+      labels:
+        app: eda-api
+    spec:
+      containers:
+        - name: eda-api
+          image: eda-api:1.0.0      # cambia por tu registry si usas remoto
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SERVER_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: eda-config
+                  key: SERVER_PORT
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: eda-config
+                  key: SPRING_PROFILES_ACTIVE
+            - name: DUMMY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: eda-secrets
+                  key: DUMMY_TOKEN
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
